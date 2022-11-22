@@ -4,6 +4,7 @@ import br.com.graspfsdlsvnd.dto.DataSolution;
 import br.com.graspfsdlsvnd.enuns.LocalSearch;
 import br.com.graspfsdlsvnd.producer.KafkaBitFlipProducer;
 import br.com.graspfsdlsvnd.service.VndService;
+import br.com.graspfsdlsvnd.util.LocalSearchUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -19,16 +20,37 @@ public class KafkaSolutionConsumer {
 
     VndService vndService;
 
+    KafkaInitialSolutionConsumer kafkaInitialSolutionConsumer;
+
     private final Logger logg = LoggerFactory.getLogger(KafkaBitFlipProducer.class);
 
-    @KafkaListener(topics = "SOLUTION_TOPIC", groupId = "myGroup", containerFactory = "initialSolutionListenerContainerFactory")
+    private static DataSolution bestSolution;
+
+
+    @KafkaListener(topics = "SOLUTION_TOPIC", groupId = "myGroup", containerFactory = "solutionListenerContainerFactory")
     public void consume(ConsumerRecord<String, DataSolution> record){
-
         logg.info("Received Message " + record.value());
-
+        final var time = System.currentTimeMillis();
         try{
-            vndService.doVnd(record.value(), LocalSearch.BIT_FLIP);
-
+            if(bestSolution == null){
+                bestSolution = record.value();
+            }else{
+                if (bestSolution.getF1Score() > record.value().getF1Score()){
+                    // proximo iwss
+                    if(record.value().getLocalSearch().equals(LocalSearchUtils.BF)){
+                        vndService.doVnd(record.value(),LocalSearch.IWSS);
+                    }else if(record.value().getLocalSearch().equals(LocalSearchUtils.IW)){
+                        vndService.doVnd(record.value(),LocalSearch.IWSSR);
+                    }
+                        else if(record.value().getLocalSearch().equals(LocalSearchUtils.IWR)){
+                        vndService.doVnd(record.value(),LocalSearch.BIT_FLIP);
+                        }else {
+                        throw new IllegalArgumentException("ERROR");
+                        }
+                }else{
+                    kafkaInitialSolutionConsumer.consume(record);
+                }
+            }
         }catch(IllegalArgumentException ex){
             throw ex;
         }
