@@ -1,7 +1,6 @@
 package br.com.graspfsdlsvnd.consumer;
 
 import br.com.graspfsdlsvnd.dto.DataSolution;
-import br.com.graspfsdlsvnd.producer.KafkaBitFlipProducer;
 import br.com.graspfsdlsvnd.service.VndService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +17,7 @@ public class KafkaSolutionConsumer {
 
     VndService vndService;
 
-    private final Logger logg = LoggerFactory.getLogger(KafkaBitFlipProducer.class);
+    private final Logger logg = LoggerFactory.getLogger(KafkaSolutionConsumer.class);
 
     private static DataSolution bestSolution;
 

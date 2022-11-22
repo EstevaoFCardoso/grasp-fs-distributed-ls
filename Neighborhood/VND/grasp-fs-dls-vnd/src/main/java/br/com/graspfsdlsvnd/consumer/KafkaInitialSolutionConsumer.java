@@ -2,7 +2,6 @@ package br.com.graspfsdlsvnd.consumer;
 
 import br.com.graspfsdlsvnd.dto.DataSolution;
 import br.com.graspfsdlsvnd.enuns.LocalSearch;
-import br.com.graspfsdlsvnd.producer.KafkaBitFlipProducer;
 import br.com.graspfsdlsvnd.service.VndService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,7 @@ public class KafkaInitialSolutionConsumer {
 
     VndService vndService;
 
-    private final Logger logg = LoggerFactory.getLogger(KafkaBitFlipProducer.class);
+    private final Logger logg = LoggerFactory.getLogger(KafkaInitialSolutionConsumer.class);
 
     @KafkaListener(topics = "INITIAL_SOLUTION", groupId = "myGroup", containerFactory = "initialSolutionListenerContainerFactory")
     public void consume(ConsumerRecord<String, DataSolution> record){
