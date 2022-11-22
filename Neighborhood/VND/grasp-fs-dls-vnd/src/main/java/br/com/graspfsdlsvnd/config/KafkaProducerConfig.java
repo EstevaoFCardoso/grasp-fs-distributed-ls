@@ -20,14 +20,7 @@ public class KafkaProducerConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapserver;
-
-    @Value("${topic.name}")
-    private String topic;
-
-    @Bean
-    public NewTopic createTopic(){
-        return new NewTopic(topic, 3, (short) 3);
-    }
+    
 
     public ProducerFactory<String, DataSolution> kafkaProducerConfig(){
         Map<String, Object> properties = new HashMap<>();
