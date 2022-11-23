@@ -19,7 +19,7 @@ public class KafkaIwssrConsumer {
 
     private final Logger logg = LoggerFactory.getLogger(KafkaIwssrConsumer.class);
 
-    @KafkaListener(topics = "BIT_FLIP_TOPIC", groupId = "myGroup", containerFactory = "bitFlipListenerContainerFactory")
+    @KafkaListener(topics = "IWSSR_TOPIC", groupId = "myGroup", containerFactory = "bitFlipListenerContainerFactory")
     public void consume(ConsumerRecord<String, DataSolution> record){
 
         logg.info("Received Message " + record.value());
