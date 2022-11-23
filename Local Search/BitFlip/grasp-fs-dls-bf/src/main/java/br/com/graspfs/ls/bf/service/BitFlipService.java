@@ -13,11 +13,12 @@ public class BitFlipService {
 
     KafkaSolutionsProducer kafkaSolutionsProducer;
 
-    public Integer cheangeOfFeatures(DataSolution data){
+    public DataSolution cheangeOfFeatures(DataSolution data){
         var random = new Random();
         var valueIndex = 0;
         int i = 0;
-        Integer bestSolution = sumArray(data.getSolutionFeatures());
+        DataSolution bestSolution= null;
+        bestSolution.setF1Score(Float.valueOf(sumArray(data.getSolutionFeatures())));
 
         do{
             Integer solution;
@@ -25,8 +26,9 @@ public class BitFlipService {
             if(valueIndex>=0 && valueIndex<data.getRclfeatures().size()){
                 data.getSolutionFeatures().add(valueIndex,data.getRclfeatures().get(valueIndex));
                solution = sumArray(data.getSolutionFeatures());
-                if(bestSolution < solution){
-                    bestSolution = solution;
+                if(bestSolution.getF1Score() < solution){
+                    bestSolution.setF1Score(Float.valueOf(solution));
+                    bestSolution.getSolutionFeatures().addAll(data.getSolutionFeatures());
                 }
                 i++;
             }
@@ -44,15 +46,16 @@ public class BitFlipService {
     }
 
     public void doBipFlip(DataSolution data, Long time){
-
-        data.setLocalSearch(LocalSearchUtils.BF);
-        data.setIterationLocalSearch(data.getIterationLocalSearch()+1);
-
-        Integer bestSolution;
+        DataSolution bestSolution;
         bestSolution = cheangeOfFeatures(data);
-        data.setRunnigTime(time);
-        data.setF1Score(bestSolution.floatValue());
-        kafkaSolutionsProducer.send(data);
+        bestSolution.setLocalSearch(LocalSearchUtils.BF);
+        bestSolution.setIterationLocalSearch(data.getIterationLocalSearch()+1);
+        bestSolution.setRunnigTime(time);
+        bestSolution.setNeighborhood(data.getNeighborhood());
+        bestSolution.getRclfeatures().addAll(data.getRclfeatures());
+        bestSolution.setSeedId(data.getSeedId());
+
+        kafkaSolutionsProducer.send(bestSolution);
     }
 
 

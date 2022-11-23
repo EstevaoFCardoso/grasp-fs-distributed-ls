@@ -13,7 +13,7 @@ import java.util.ArrayList;
 @Setter
 public class DataSolution {
 
-    private final Long seedId;// id da mensagem
+    private  Long seedId;// id da mensagem
     private final ArrayList<Integer> solutionFeatures;// []
     private final ArrayList<Integer> rclfeatures;// []
     private String neighborhood;// vnd
