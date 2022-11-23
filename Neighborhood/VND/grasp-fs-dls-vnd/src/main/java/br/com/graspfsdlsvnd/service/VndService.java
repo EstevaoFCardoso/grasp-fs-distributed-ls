@@ -10,9 +10,9 @@ import br.com.graspfsdlsvnd.util.LocalSearchUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 public class VndService {
 
     private final Logger logg = LoggerFactory.getLogger(KafkaBitFlipProducer.class);

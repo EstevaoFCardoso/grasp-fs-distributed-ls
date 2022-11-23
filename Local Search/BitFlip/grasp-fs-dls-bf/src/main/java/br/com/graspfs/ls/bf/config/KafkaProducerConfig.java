@@ -29,7 +29,7 @@ public class KafkaProducerConfig {
         return new DefaultKafkaProducerFactory<>(properties);
     }
     @Bean
-    public KafkaTemplate<String, DataSolution> dataSolutionKafkaTemplate(){
+    public KafkaTemplate<String, DataSolution> dataSolutionKafkaTemplateProducer(){
         return new KafkaTemplate<>(kafkaProducerConfig());
     }
 

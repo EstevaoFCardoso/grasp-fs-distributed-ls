@@ -17,17 +17,17 @@ import java.util.ArrayList;
 public class BitFlipControler {
 
     private final KafkaBitFlipProducer bitFlipProducer;
-
-
-    @PostMapping
-    public ResponseEntity<DataSolution> createMessage(){
-        var data = DataSolution.builder()
-                .id("VND")
-                .rclfeatures(new ArrayList<>(1))
-                .solutionFeatures(new ArrayList<>(1))
-                .build();
-        bitFlipProducer.send(data);
-        return ResponseEntity.status(HttpStatus.OK).body(data);
-    }
+//
+//
+//    @PostMapping
+//    public ResponseEntity<DataSolution> createMessage(){
+//        var data = DataSolution.builder()
+//                .id("VND")
+//                .rclfeatures(new ArrayList<>(1))
+//                .solutionFeatures(new ArrayList<>(1))
+//                .build();
+//        bitFlipProducer.send(data);
+//        return ResponseEntity.status(HttpStatus.OK).body(data);
+//    }
 
 }

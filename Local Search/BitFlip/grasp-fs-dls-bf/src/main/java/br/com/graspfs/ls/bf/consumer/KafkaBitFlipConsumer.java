@@ -19,13 +19,13 @@ public class KafkaBitFlipConsumer {
 
     private final Logger logg = LoggerFactory.getLogger(KafkaBitFlipConsumer.class);
 
-    @KafkaListener(topics = "BIT_FLIP_TOPIC", groupId = "myGroup", containerFactory = "bitFlipListenerContainerFactory")
+    @KafkaListener(topics = "BIT_FLIP_TOPIC", groupId = "myGroup")
     public void consume(ConsumerRecord<String, DataSolution> record){
 
         logg.info("Received Message " + record.value());
-        final var time = System.currentTimeMillis();
+        final var timeConsume = System.currentTimeMillis();
         try{
-            bitFlipService.doBipFlip(record.value(), time);
+            bitFlipService.doBipFlip(record.value(), timeConsume);
         }catch(IllegalArgumentException ex){
             throw ex;
         }

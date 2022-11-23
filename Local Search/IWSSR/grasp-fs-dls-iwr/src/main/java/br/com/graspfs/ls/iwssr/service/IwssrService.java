@@ -46,8 +46,7 @@ public class IwssrService {
             Integer solution;
             valueIndex = random.nextInt(data.getRclfeatures().size());
             positionReplace = random.nextInt(data.getSolutionFeatures().size());
-            if((valueIndex>=0 && valueIndex<data.getRclfeatures().size()) &&(positionReplace >= 0 &&  positionReplace<data.getSolutionFeatures().size())){
-
+            if((valueIndex>=0 && valueIndex<data.getRclfeatures().size()) && (positionReplace >= 0 &&  positionReplace<data.getSolutionFeatures().size())){
                 data.getSolutionFeatures().add(positionReplace,data.getRclfeatures().get(valueIndex));
                 solution = sumArray(data.getSolutionFeatures());
 

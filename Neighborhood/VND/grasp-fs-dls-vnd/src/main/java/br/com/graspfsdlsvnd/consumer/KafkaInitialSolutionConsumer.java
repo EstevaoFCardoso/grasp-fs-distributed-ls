@@ -20,7 +20,7 @@ public class KafkaInitialSolutionConsumer {
 
     private final Logger logg = LoggerFactory.getLogger(KafkaInitialSolutionConsumer.class);
 
-    @KafkaListener(topics = "INITIAL_SOLUTION", groupId = "myGroup", containerFactory = "initialSolutionListenerContainerFactory")
+    @KafkaListener(topics = "INITIAL_SOLUTION", groupId = "myGroup")
     public void consume(ConsumerRecord<String, DataSolution> record){
 
         logg.info("Received Message " + record.value());
