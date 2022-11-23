@@ -25,6 +25,7 @@ public class KafkaInitialSolutionConsumer {
 
         logg.info("Received Message " + record.value());
         final var time = System.currentTimeMillis();
+
         try{
             vndService.doVnd(record.value(), LocalSearch.BIT_FLIP);
         }catch(IllegalArgumentException ex){
