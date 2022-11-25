@@ -1,21 +1,22 @@
 package br.com.graspfs.ls.bf.service;
 
-import br.com.graspfs.ls.bf.consumer.KafkaBitFlipConsumer;
 import br.com.graspfs.ls.bf.dto.DataSolution;
 import br.com.graspfs.ls.bf.producer.KafkaSolutionsProducer;
 import br.com.graspfs.ls.bf.util.LocalSearchUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-@Service
+@Component
 public class BitFlipService {
 
     private final Logger logg = LoggerFactory.getLogger(BitFlipService.class);
 
+    @Autowired
     KafkaSolutionsProducer kafkaSolutionsProducer;
 
     public DataSolution flipFeatures(DataSolution solution, Long time){
@@ -23,23 +24,25 @@ public class BitFlipService {
         var valueIndex = 0;
         int i = 0;
         var positionReplace = 0;
-        DataSolution bestSolution= solution;
+        DataSolution bestSolution= updateSolution(solution);
         do{
             Integer sumFeatures;
-            valueIndex = random.nextInt(solution.getRclfeatures().size());
-            positionReplace = random.nextInt(solution.getSolutionFeatures().size());
+            valueIndex = random.nextInt(solution.getRclfeatures().size()-1);
+            positionReplace = random.nextInt(solution.getSolutionFeatures().size()-1);
 
             if(valueIndex>=0 && valueIndex<solution.getRclfeatures().size() && (positionReplace >= 0 &&  positionReplace<solution.getSolutionFeatures().size())){
                 //bit flip
                 solution.getSolutionFeatures().add(positionReplace,solution.getRclfeatures().remove(valueIndex));
-                solution.getRclfeatures().add(valueIndex,solution.getRclfeatures().remove(positionReplace));
+                solution.getRclfeatures().add(valueIndex,solution.getSolutionFeatures().remove(positionReplace));
+                solution.setIterationLocalSearch(solution.getIterationLocalSearch()+1);
+                logg.info("Score: "+ solution.getF1Score() + " Solução: " + " " + solution.getSolutionFeatures() + " Iteração:"+ solution.getIterationLocalSearch());
                 //soma metrica
                 sumFeatures = sumArray(solution.getSolutionFeatures());
                 solution.setF1Score(Float.valueOf(sumFeatures));
+                solution.setRunnigTime(System.currentTimeMillis()-time);
                 //verifica bestSolution
-                solution.setRunnigTime(time-System.currentTimeMillis());
                 if(bestSolution.getF1Score() < solution.getF1Score()){
-                    bestSolution=solution;
+                    bestSolution=updateSolution(solution);
                 }
                 i++;
             }
@@ -73,5 +76,17 @@ public class BitFlipService {
         kafkaSolutionsProducer.send(bestSolution);
     }
 
+    private static DataSolution updateSolution(DataSolution solution){
+        return DataSolution.builder()
+                .seedId(solution.getSeedId())
+                .rclfeatures(solution.getRclfeatures())
+                .solutionFeatures(solution.getSolutionFeatures())
+                .neighborhood(solution.getNeighborhood())
+                .f1Score(solution.getF1Score())
+                .runnigTime(solution.getRunnigTime())
+                .iterationLocalSearch(solution.getIterationLocalSearch())
+                .build();
+
+    }
 
 }
