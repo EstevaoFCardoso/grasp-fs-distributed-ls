@@ -1,15 +1,16 @@
 package br.com.graspfsdlsvnd.service;
 
-import br.com.graspfsdlsvnd.consumer.KafkaInitialSolutionConsumer;
 import br.com.graspfsdlsvnd.dto.DataSolution;
 import br.com.graspfsdlsvnd.enuns.LocalSearch;
 import br.com.graspfsdlsvnd.producer.KafkaBitFlipProducer;
+import br.com.graspfsdlsvnd.producer.KafkaInitialSolutionProducer;
 import br.com.graspfsdlsvnd.producer.KafkaIwssProducer;
 import br.com.graspfsdlsvnd.producer.KafkaIwssrProducer;
 import br.com.graspfsdlsvnd.util.LocalSearchUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,11 +18,15 @@ public class VndService {
 
     private final Logger logg = LoggerFactory.getLogger(KafkaBitFlipProducer.class);
 
+    @Autowired
     KafkaBitFlipProducer bitFlipProducer;
+    @Autowired
     KafkaIwssProducer kafkaIwssProducer;
+    @Autowired
     KafkaIwssrProducer kafkaIwssrProducer;
 
-    KafkaInitialSolutionConsumer kafkaInitialSolutionConsumer;
+    @Autowired
+    KafkaInitialSolutionProducer kafkaInitialSolutionProducer;
     private Integer iteration = 1;
 
     public void doVnd(DataSolution data, LocalSearch localSearch) {
@@ -31,6 +36,7 @@ public class VndService {
         iteration++;
         switch (localSearch){
             case BIT_FLIP:
+                logg.info("SEND BITF");
                 bitFlipProducer.send(data);
                 break;
             case IWSS:
@@ -55,7 +61,7 @@ public class VndService {
                 throw new IllegalArgumentException("ERROR");
             }
         }else {
-            kafkaInitialSolutionConsumer.consume(record);
+            kafkaInitialSolutionProducer.send(record.value());
             return record.value();
         }
         return bestSolution;
