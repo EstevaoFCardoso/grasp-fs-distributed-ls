@@ -26,6 +26,8 @@ public class KafkaBitFlipConsumer {
             bitFlipService.doBipFlip(record, timeConsume);
         }catch(IllegalArgumentException ex){
             throw ex;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

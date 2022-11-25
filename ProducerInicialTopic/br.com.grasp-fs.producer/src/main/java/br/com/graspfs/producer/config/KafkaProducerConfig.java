@@ -19,25 +19,19 @@ public class KafkaProducerConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapserver;
-    
 
     @Bean
-    public Map<String, Object> producerConfig(){
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapserver);
-        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        return properties;
+    public ProducerFactory<String, Object> kafkaProducerConfigFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapserver);
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class.getName());
+        return new DefaultKafkaProducerFactory<>(configProps, new StringSerializer(), new JsonSerializer<>());
     }
 
     @Bean
-    public ProducerFactory<String, DataSolution> producerFactory() {
-        return new DefaultKafkaProducerFactory<>(producerConfig());
-    }
-
-    @Bean
-    public KafkaTemplate<String, DataSolution> dataSolutionKafkaTemplateProducer(){
-        return new KafkaTemplate<>(producerFactory());
+    public KafkaTemplate<String, DataSolution> kafkaProducerTemplate() {
+        return new KafkaTemplate(kafkaProducerConfigFactory());
     }
 
 }

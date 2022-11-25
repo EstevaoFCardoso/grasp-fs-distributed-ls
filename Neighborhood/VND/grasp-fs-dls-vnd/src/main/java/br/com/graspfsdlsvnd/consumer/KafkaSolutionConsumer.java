@@ -28,17 +28,20 @@ public class KafkaSolutionConsumer {
     public void consume(ConsumerRecord<String, DataSolution> record){
         logg.info("Received Message " + record.value());
         final var time = System.currentTimeMillis();
-        try{
-            if(bestSolution == null){
-                bestSolution = record.value();
-                vndService.callNextService(bestSolution,record);
-            }else{
-                bestSolution = vndService.callNextService(bestSolution,record);
-                logg.info("BESTSOLUTION OBTIDA PELO CONSUMO DO TOPICO SOLUTION " + bestSolution);
+        if(record.value().getIterationNeighborhood()<100){
+            try{
+                if(bestSolution == null){
+                    bestSolution = record.value();
+                    vndService.callNextService(bestSolution,record);
+                }else{
+                    bestSolution = vndService.callNextService(bestSolution,record);
+                    logg.info("BESTSOLUTION OBTIDA PELO CONSUMO DO TOPICO SOLUTION " + bestSolution);
+                }
+            }catch(IllegalArgumentException ex){
+                throw ex;
             }
-        }catch(IllegalArgumentException ex){
-            throw ex;
         }
+
     }
 
 }

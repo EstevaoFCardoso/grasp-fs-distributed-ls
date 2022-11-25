@@ -1,6 +1,7 @@
 package br.com.graspfs.ls.bf.service;
 
 import br.com.graspfs.ls.bf.dto.DataSolution;
+import br.com.graspfs.ls.bf.machinelearning.MachineLearning;
 import br.com.graspfs.ls.bf.producer.KafkaSolutionsProducer;
 import br.com.graspfs.ls.bf.util.LocalSearchUtils;
 import org.slf4j.Logger;
@@ -19,48 +20,47 @@ public class BitFlipService {
     @Autowired
     KafkaSolutionsProducer kafkaSolutionsProducer;
 
-    public DataSolution flipFeatures(DataSolution solution, Long time){
+    public DataSolution flipFeatures(DataSolution solution, Long time) throws Exception {
         var random = new Random();
         var valueIndex = 0;
         int i = 1;
         var positionReplace = 0;
         DataSolution bestSolution= updateSolution(solution);
-        do{
-            Integer sumFeatures;
-            valueIndex = random.nextInt(solution.getRclfeatures().size()-1);
-            positionReplace = random.nextInt(solution.getSolutionFeatures().size()-1);
+        try{
+            do{
+                float valueOfFeatures;
+                valueIndex = random.nextInt(solution.getRclfeatures().size()-1);
+                positionReplace = random.nextInt(solution.getSolutionFeatures().size()-1);
 
-            if(valueIndex>=0 && valueIndex<solution.getRclfeatures().size() && (positionReplace >= 0 &&  positionReplace<solution.getSolutionFeatures().size())){
-                //bit flip
-                solution.getSolutionFeatures().add(solution.getRclfeatures().remove(valueIndex));
-                solution.getRclfeatures().add(solution.getSolutionFeatures().remove(positionReplace));
-                solution.setIterationLocalSearch(solution.getIterationLocalSearch()+1);
-                logg.info("Score: "+ solution.getF1Score() + " Solução: " + " " + solution.getSolutionFeatures() + " Iteração:"+ solution.getIterationLocalSearch());
-                //soma metrica
-                sumFeatures = sumArray(solution.getSolutionFeatures());
-                solution.setF1Score(Float.valueOf(sumFeatures));
-                solution.setRunnigTime(System.currentTimeMillis()-time);
-                //verifica bestSolution
-                if(bestSolution.getF1Score() < solution.getF1Score()){
-                    bestSolution=updateSolution(solution);
+                if(valueIndex>=0 && valueIndex<solution.getRclfeatures().size() && (positionReplace >= 0 &&  positionReplace<solution.getSolutionFeatures().size())){
+                    //bit flip
+                    solution.getSolutionFeatures().add(solution.getRclfeatures().remove(valueIndex));
+                    solution.getRclfeatures().add(solution.getSolutionFeatures().remove(positionReplace));
+                    solution.setIterationLocalSearch(solution.getIterationLocalSearch()+1);
+                    logg.info("Score: "+ solution.getF1Score() + " Solução: " + " " + solution.getSolutionFeatures() + " Iteração:"+ solution.getIterationLocalSearch());
+                    //soma metrica
+                    valueOfFeatures = MachineLearning.evaluateSolution(solution.getSolutionFeatures());//sumArray(solution.getSolutionFeatures());
+                    solution.setF1Score(Float.valueOf(valueOfFeatures));
+                    solution.setRunnigTime(System.currentTimeMillis()-time);
+                    //verifica bestSolution
+                    if(bestSolution.getF1Score() < solution.getF1Score()){
+                        bestSolution=updateSolution(solution);
+                    }
+                    i++;
                 }
-                i++;
-            }
-        }while(i<100);
-        logg.info("BESTTSOLUTION: "+ bestSolution.getF1Score() + " " + bestSolution.getRunnigTime() + " " + bestSolution.getNeighborhood() + " " + bestSolution.getSolutionFeatures() + " "
-                + bestSolution.getIterationLocalSearch());
-        return bestSolution;
-    }
+            } while(i<100);
 
-    public Integer sumArray(ArrayList<Integer> solution){
-        Integer sumMetric = 0;
-        for(int i = 0; i<solution.size()-1; i++){
-            sumMetric = solution.get(i) + sumMetric;
+            logg.info("BESTTSOLUTION: "+ bestSolution.getF1Score() + " " + bestSolution.getRunnigTime() + " " + bestSolution.getNeighborhood() + " " + bestSolution.getSolutionFeatures() + " "
+                    + bestSolution.getIterationLocalSearch());
+            return bestSolution;
+
+        }catch (RuntimeException ex){
+            logg.info("ERROR : "+ ex.getMessage());
+            throw  new Exception("Erro na logica para o machine learning");
         }
-        return sumMetric;
     }
 
-    public void doBipFlip(DataSolution data, Long time){
+    public void doBipFlip(DataSolution data, Long time) throws Exception {
         DataSolution bestSolution;
         bestSolution = flipFeatures(data,time);
         bestSolution.setLocalSearch(LocalSearchUtils.BF);

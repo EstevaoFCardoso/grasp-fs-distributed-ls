@@ -1,6 +1,6 @@
-package br.com.graspfs.producer.producer;
+package br.com.graspfs.dlsrvnd.producer;
 
-import br.com.graspfs.producer.dto.DataSolution;
+import br.com.graspfs.dlsrvnd.dto.DataSolution;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,15 +10,15 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class KafkaInitialSolutionProducer {
+public class KafkaIwssrProducer {
 
     private final String topic;
-    private final Logger logg = LoggerFactory.getLogger(KafkaInitialSolutionProducer.class);
+    private final Logger logg = LoggerFactory.getLogger(KafkaIwssrProducer.class);
     @Autowired
     private final KafkaTemplate<String, DataSolution> kafkaTemplate;
 
-    public KafkaInitialSolutionProducer(KafkaTemplate<String, DataSolution> kafkaTemplate){
-        this.topic = "INITIAL_SOLUTION_TOPIC";
+    public KafkaIwssrProducer(KafkaTemplate<String, DataSolution> kafkaTemplate){
+        this.topic = "IWSSR_TOPIC";
         this.kafkaTemplate = kafkaTemplate;
     }
 

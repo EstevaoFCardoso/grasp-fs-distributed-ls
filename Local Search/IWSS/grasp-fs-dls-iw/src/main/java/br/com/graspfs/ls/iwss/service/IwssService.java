@@ -1,50 +1,22 @@
 package br.com.graspfs.ls.iwss.service;
 
 import br.com.graspfs.ls.iwss.dto.DataSolution;
+import br.com.graspfs.ls.iwss.machinelearning.MachineLearning;
 import br.com.graspfs.ls.iwss.producer.KafkaSolutionsProducer;
 import br.com.graspfs.ls.iwss.util.LocalSearchUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Random;
 
 @Service
 public class IwssService {
 
+    @Autowired
     KafkaSolutionsProducer kafkaSolutionsProducer;
 
-    public DataSolution cheangeOfFeatures(DataSolution data){
-        var valueIndex = 0;
-        int i = 0;
-        DataSolution bestSolution= null;
-        bestSolution.setF1Score(Float.valueOf(sumArray(data.getSolutionFeatures())));
-        bestSolution.getRclfeatures().addAll(data.getRclfeatures());
-        do{
-            Integer solution;
-            data.getSolutionFeatures().add(data.getRclfeatures().get(0));
-            data.getRclfeatures().remove(0);
-            valueIndex = sumArray(data.getSolutionFeatures());
-            if(data.getF1Score() < (float) valueIndex){
-                bestSolution.setF1Score((float) valueIndex);
-            }
-            i++;
-        }while(i<100);
-        bestSolution.getSolutionFeatures().addAll(data.getSolutionFeatures());
-        return bestSolution;
-    }
-
-    public Integer sumArray(ArrayList<Integer> solution){
-        Integer bestSolution = 0;
-        for(int i = 0; i<solution.size()-1; i++){
-            bestSolution = solution.get(i) + bestSolution;
-        }
-        return bestSolution;
-    }
-
-    public void doIwss(DataSolution data) {
+    public void doIwss(DataSolution data, Long time) throws Exception {
 
         DataSolution bestSolution;
-        bestSolution = cheangeOfFeatures(data);
+        bestSolution = incrementalWrapperSequencialSearch(data,time);
         bestSolution.setLocalSearch(LocalSearchUtils.IW);
         bestSolution.setIterationLocalSearch(data.getIterationLocalSearch()+1);
         bestSolution.setNeighborhood(data.getNeighborhood());
@@ -52,6 +24,39 @@ public class IwssService {
         bestSolution.setSeedId(data.getSeedId());
 
         kafkaSolutionsProducer.send(bestSolution);
+
+    }
+
+    public static DataSolution incrementalWrapperSequencialSearch(DataSolution dataSolution, Long time) throws Exception {
+        DataSolution bestSolution = updateSolution(dataSolution);
+        // Busca Sequencial
+        for (int i = 1; i < dataSolution.getRclfeatures().size(); i++) {
+
+            dataSolution = updateSolution(bestSolution);
+            dataSolution.getSolutionFeatures().add(dataSolution.getRclfeatures().remove(0));
+
+            float f1Score = MachineLearning.evaluateSolution(dataSolution.getSolutionFeatures());
+            dataSolution.setF1Score(f1Score);
+
+            if (dataSolution.getF1Score() > bestSolution.getF1Score()) {
+                bestSolution = updateSolution(dataSolution);
+            } else {
+                System.out.println("Não houve melhoras!");
+            }
+        }
+        return bestSolution;
+    }
+
+    private static DataSolution updateSolution(DataSolution solution){
+        return DataSolution.builder()
+                .seedId(solution.getSeedId())
+                .rclfeatures(solution.getRclfeatures())
+                .solutionFeatures(solution.getSolutionFeatures())
+                .neighborhood(solution.getNeighborhood())
+                .f1Score(solution.getF1Score())
+                .runnigTime(solution.getRunnigTime())
+                .iterationLocalSearch(solution.getIterationLocalSearch())
+                .build();
 
     }
 }

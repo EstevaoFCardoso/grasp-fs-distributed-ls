@@ -1,6 +1,6 @@
-package br.com.graspfs.ls.iwss.config;
+package br.com.graspfs.dlsrvnd.config;
 
-import br.com.graspfs.ls.iwss.dto.DataSolution;
+import br.com.graspfs.dlsrvnd.dto.DataSolution;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +20,7 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapserver;
 
-    @Bean
+        @Bean
     public ProducerFactory<String, Object> kafkaProducerConfigFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapserver);
