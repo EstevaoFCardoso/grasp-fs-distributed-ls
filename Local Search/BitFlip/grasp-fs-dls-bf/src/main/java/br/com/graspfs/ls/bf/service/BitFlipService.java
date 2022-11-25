@@ -27,11 +27,7 @@ public class BitFlipService {
         for (int i = 6; i <= 20; i++) {
             rcl.add(i);
         }
-        rcl.add(21);
-        rcl.add(22);
-        rcl.add(23);
-        rcl.add(24);
-        rcl.add(25);
+
 
         DataSolution ds = new DataSolution((long) 1,
                 seed,
@@ -94,8 +90,8 @@ public class BitFlipService {
 
     private static DataSolution updateBestSolution(DataSolution solution) {
         return new DataSolution(solution.getSeedId(),
-                solution.getSolutionFeatures(),
-                solution.getRclfeatures(),
+                new ArrayList<>(solution.getSolutionFeatures()),
+                new ArrayList<>(solution.getRclfeatures()),
                 solution.getNeighborhood(),
                 solution.getIterationNeighborhood(),
                 solution.getClassfier(),
