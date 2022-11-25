@@ -49,7 +49,12 @@ public class VndService {
     }
 
     public DataSolution callNextService(DataSolution bestSolution, ConsumerRecord<String, DataSolution> record ) {
-        if (bestSolution.getF1Score() > record.value().getF1Score()) {
+
+        if (record.value().getF1Score() >= bestSolution.getF1Score()) {
+            logg.info("RESET");
+            kafkaInitialSolutionProducer.send(record.value());
+            return record.value();
+        }else {
             // proximo
             if (record.value().getLocalSearch().equals(LocalSearchUtils.BF)) {
                 doVnd(record.value(), LocalSearch.IWSS);
@@ -60,9 +65,6 @@ public class VndService {
             } else {
                 throw new IllegalArgumentException("ERROR");
             }
-        }else {
-            kafkaInitialSolutionProducer.send(record.value());
-            return record.value();
         }
         return bestSolution;
     }

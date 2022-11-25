@@ -24,15 +24,17 @@ public class KafkaSolutionConsumer {
     private static DataSolution bestSolution;
 
 
-    @KafkaListener(topics = "SOLUTION_TOPIC", groupId = "myGroup")
+    @KafkaListener(topics = {"SOLUTION_TOPIC"}, groupId = "myGroup")
     public void consume(ConsumerRecord<String, DataSolution> record){
         logg.info("Received Message " + record.value());
         final var time = System.currentTimeMillis();
         try{
             if(bestSolution == null){
                 bestSolution = record.value();
+                vndService.callNextService(bestSolution,record);
             }else{
                 bestSolution = vndService.callNextService(bestSolution,record);
+                logg.info("BESTSOLUTION OBTIDA PELO CONSUMO DO TOPICO SOLUTION " + bestSolution);
             }
         }catch(IllegalArgumentException ex){
             throw ex;

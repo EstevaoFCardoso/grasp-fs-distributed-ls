@@ -14,7 +14,6 @@ public class KafkaBitFlipProducer {
 
     private final String topic;
     private final Logger logg = LoggerFactory.getLogger(KafkaBitFlipProducer.class);
-
     @Autowired
     private final KafkaTemplate<String, DataSolution> kafkaTemplate;
 

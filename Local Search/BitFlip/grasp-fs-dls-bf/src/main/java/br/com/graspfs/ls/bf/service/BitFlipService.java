@@ -22,7 +22,7 @@ public class BitFlipService {
     public DataSolution flipFeatures(DataSolution solution, Long time){
         var random = new Random();
         var valueIndex = 0;
-        int i = 0;
+        int i = 1;
         var positionReplace = 0;
         DataSolution bestSolution= updateSolution(solution);
         do{
@@ -32,8 +32,8 @@ public class BitFlipService {
 
             if(valueIndex>=0 && valueIndex<solution.getRclfeatures().size() && (positionReplace >= 0 &&  positionReplace<solution.getSolutionFeatures().size())){
                 //bit flip
-                solution.getSolutionFeatures().add(positionReplace,solution.getRclfeatures().remove(valueIndex));
-                solution.getRclfeatures().add(valueIndex,solution.getSolutionFeatures().remove(positionReplace));
+                solution.getSolutionFeatures().add(solution.getRclfeatures().remove(valueIndex));
+                solution.getRclfeatures().add(solution.getSolutionFeatures().remove(positionReplace));
                 solution.setIterationLocalSearch(solution.getIterationLocalSearch()+1);
                 logg.info("Score: "+ solution.getF1Score() + " Solução: " + " " + solution.getSolutionFeatures() + " Iteração:"+ solution.getIterationLocalSearch());
                 //soma metrica
@@ -46,9 +46,9 @@ public class BitFlipService {
                 }
                 i++;
             }
-            logg.info("Message: "+ bestSolution.getF1Score() + " " + bestSolution.getRunnigTime() + " " + bestSolution.getNeighborhood() + " " + bestSolution.getSolutionFeatures() + " "
-                    + bestSolution.getIterationLocalSearch());
         }while(i<100);
+        logg.info("BESTTSOLUTION: "+ bestSolution.getF1Score() + " " + bestSolution.getRunnigTime() + " " + bestSolution.getNeighborhood() + " " + bestSolution.getSolutionFeatures() + " "
+                + bestSolution.getIterationLocalSearch());
         return bestSolution;
     }
 
