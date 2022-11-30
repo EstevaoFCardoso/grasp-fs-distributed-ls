@@ -1,8 +1,10 @@
 package br.com.graspfs.ls.iwssr.service;
 
 import br.com.graspfs.ls.iwssr.dto.DataSolution;
+import br.com.graspfs.ls.iwssr.machinelearning.MachineLearning;
 import br.com.graspfs.ls.iwssr.producer.KafkaSolutionsProducer;
 import br.com.graspfs.ls.iwssr.util.LocalSearchUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -11,91 +13,121 @@ import java.util.Random;
 @Service
 public class IwssrService {
 
+    @Autowired
     KafkaSolutionsProducer kafkaSolutionsProducer;
 
-    public DataSolution cheangeOfFeatures(DataSolution data){
-        var valueIndex = 0;
-        int i = 0;
-        DataSolution bestSolution= null;
-        bestSolution.setF1Score(Float.valueOf(sumArray(data.getSolutionFeatures())));
+    public void doIwssr(DataSolution data, Long time) throws Exception {
+
+        DataSolution bestSolution;
+        bestSolution = incrementalWrapperSequencialSearch(data,time);
+        bestSolution.setLocalSearch(LocalSearchUtils.IWR);
+        bestSolution.setIterationLocalSearch(data.getIterationLocalSearch()+1);
+        bestSolution.setNeighborhood(data.getNeighborhood());
         bestSolution.getRclfeatures().addAll(data.getRclfeatures());
-        do{
-            Integer solution;
-            data.getSolutionFeatures().add(data.getRclfeatures().get(0));
-            data.getRclfeatures().remove(0);
-            valueIndex = sumArray(data.getSolutionFeatures());
-            if(data.getF1Score() < (float) valueIndex){
-                bestSolution.setF1Score((float) valueIndex);
+        bestSolution.setSeedId(data.getSeedId());
+
+        kafkaSolutionsProducer.send(bestSolution);
+
+    }
+
+    public static DataSolution incrementalWrapperSequencialSearch(DataSolution dataSolution, Long time) throws Exception {
+
+        DataSolution bestSolution = updateSolution(dataSolution);
+
+        var localSolutionAdd = updateSolution(dataSolution);
+        var localSolutionReplace = updateSolution(dataSolution);
+        //boolean firstMovement = true;
+
+        for(int i = 1; i < localSolutionAdd.getRclfeatures().size(); i++){
+            localSolutionAdd = updateSolution(addMovement(localSolutionAdd));
+            localSolutionReplace = updateSolution(replaceMovement(localSolutionAdd));
+
+            localSolutionReplace = replaceMovement(){
+
             }
-            i++;
-        }while(i<100);
-        bestSolution.getSolutionFeatures().addAll(data.getSolutionFeatures());
-        return bestSolution;
-    }
 
-    public DataSolution replaceOfFeatures(DataSolution data){
-        var random = new Random();
-        var valueIndex = 0;
-        var positionReplace = 0;
-        int i = 0;
-        DataSolution bestSolution= null;
-        bestSolution.setF1Score(Float.valueOf(sumArray(data.getSolutionFeatures())));
-        bestSolution.getRclfeatures().addAll(data.getRclfeatures());
-
-        do{
-            Integer solution;
-            valueIndex = random.nextInt(data.getRclfeatures().size());
-            positionReplace = random.nextInt(data.getSolutionFeatures().size());
-            if((valueIndex>=0 && valueIndex<data.getRclfeatures().size()) && (positionReplace >= 0 &&  positionReplace<data.getSolutionFeatures().size())){
-                data.getSolutionFeatures().add(positionReplace,data.getRclfeatures().get(valueIndex));
-                solution = sumArray(data.getSolutionFeatures());
-
-                if(bestSolution.getF1Score() < solution){
-                    bestSolution.setF1Score(Float.valueOf(solution));
-                }
-
-                i++;
-            }
-        }while(i<100);
-
-        bestSolution.getSolutionFeatures().addAll(data.getSolutionFeatures());
-
-        return bestSolution;
-    }
-
-
-    public Integer sumArray(ArrayList<Integer> solution){
-        Integer bestSolution = 0;
-        for(int i = 0; i<solution.size()-1; i++){
-            bestSolution = solution.get(i) + bestSolution;
-        }
-        return bestSolution;
-    }
-
-    public void doIwssr(DataSolution data) {
-
-        DataSolution bestSolutionChange;
-        DataSolution bestSolutionReplace;
-
-        bestSolutionChange = cheangeOfFeatures(data);
-        bestSolutionReplace = replaceOfFeatures(data);
-        if(bestSolutionChange.getF1Score() >bestSolutionReplace.getF1Score()){
-            bestSolutionChange.setLocalSearch(LocalSearchUtils.IWR);
-            bestSolutionChange.setIterationLocalSearch(data.getIterationLocalSearch()+1);
-            bestSolutionChange.setNeighborhood(data.getNeighborhood());
-            bestSolutionChange.getRclfeatures().addAll(data.getRclfeatures());
-            bestSolutionChange.setSeedId(data.getSeedId());
-            kafkaSolutionsProducer.send(bestSolutionChange);
-        }else{
-            bestSolutionReplace.setLocalSearch(LocalSearchUtils.IWR);
-            bestSolutionReplace.setIterationLocalSearch(data.getIterationLocalSearch()+1);
-            bestSolutionReplace.setNeighborhood(data.getNeighborhood());
-            bestSolutionReplace.getRclfeatures().addAll(data.getRclfeatures());
-            bestSolutionReplace.setSeedId(data.getSeedId());
-
-            kafkaSolutionsProducer.send(bestSolutionReplace);
         }
 
+        return bestSolution;
+    }
+
+//    public static DataSolution incrementalWrapperSequencialSearch(DataSolution dataSolution, Long time) throws Exception {
+//        DataSolution bestSolution = updateSolution(dataSolution);
+//        var localSolution = updateSolution(dataSolution);
+//        boolean firstMovement = true;
+//
+//        for (int i = 1; i < dataSolution.getRclfeatures().size(); i++) {
+//            if(firstMovement){
+//                // é adicionado um valor do rcl na minha solução
+//                localSolution = updateSolution(addMovement(localSolution));
+//
+//                float f1Score = MachineLearning.evaluateSolution(localSolution.getSolutionFeatures());
+//                // solução local é atualizada
+//                localSolution.setF1Score(f1Score);
+//                // caso a solução local seja maior do que a bestSolution atual a bestSolution é atualizada
+//                if (localSolution.getF1Score() > bestSolution.getF1Score()) {
+//                    bestSolution = updateSolution(localSolution);
+//                } else {
+//                    System.out.println("Não houve melhoras!");
+//                }
+//                // fim da primeira movimentação
+//                firstMovement= false;
+//            }else {
+//                dataSolution = updateSolution(replaceMovement(dataSolution,localSolution));
+//
+//                float f1Score = MachineLearning.evaluateSolution(dataSolution.getSolutionFeatures());
+//                dataSolution.setF1Score(f1Score);
+//
+//                if (dataSolution.getF1Score() > bestSolution.getF1Score()) {
+//                    bestSolution = updateSolution(dataSolution);
+//                } else {
+//                    System.out.println("Não houve melhoras!");
+//                }
+//            }
+//
+//        }
+//        return bestSolution;
+//    }
+
+
+    private static DataSolution addMovement(DataSolution solution) throws Exception {
+        solution.getSolutionFeatures().add(solution.getRclfeatures().remove(0));
+        float f1Score = MachineLearning.evaluateSolution(solution.getSolutionFeatures());
+        solution.setF1Score(f1Score);
+        return solution;
+    }
+
+    private static DataSolution replaceMovement(DataSolution solution) throws Exception {
+        var bestReplace = updateSolution(solution);
+
+
+        for(int i = 0; i<solution.getSolutionFeatures().size();i++){
+
+            var replacedSolution = updateSolution(solution);
+
+            replacedSolution.getSolutionFeatures().remove(i);
+
+            float f1Score = MachineLearning.evaluateSolution(replacedSolution.getSolutionFeatures());
+            replacedSolution.setF1Score(f1Score);
+
+            if(replacedSolution.getF1Score() > bestReplace.getF1Score()){
+                bestReplace = updateSolution(replacedSolution);
+            }
+        }
+        return bestReplace;
+    }
+
+    private static DataSolution updateSolution(DataSolution solution){
+        return DataSolution.builder()
+                .seedId(solution.getSeedId())
+                .rclfeatures(solution.getRclfeatures())
+                .solutionFeatures(solution.getSolutionFeatures())
+                .neighborhood(solution.getNeighborhood())
+                .f1Score(solution.getF1Score())
+                .runnigTime(solution.getRunnigTime())
+                .iterationLocalSearch(solution.getIterationLocalSearch())
+                .build();
 
     }
+
 }
