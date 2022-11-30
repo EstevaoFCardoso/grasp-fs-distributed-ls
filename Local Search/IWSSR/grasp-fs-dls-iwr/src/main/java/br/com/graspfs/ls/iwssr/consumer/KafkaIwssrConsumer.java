@@ -25,9 +25,11 @@ public class KafkaIwssrConsumer {
         logg.info("Received Message " + record.value());
         final var time = System.currentTimeMillis();
         try{
-            iwssrService.doIwssr(record.value());
+            iwssrService.doIwssr(record.value(), time);
         }catch(IllegalArgumentException ex){
             throw ex;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
