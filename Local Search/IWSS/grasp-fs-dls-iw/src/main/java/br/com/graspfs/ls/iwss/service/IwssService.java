@@ -36,7 +36,7 @@ public class IwssService {
         DataSolution bestSolution = updateSolution(dataSolution);
 
         // criar arquivo para métrica
-        BufferedWriter br = new BufferedWriter(new FileWriter("IWSS_METRICS"));
+        BufferedWriter br = new BufferedWriter(new FileWriter("IWSS_METRICS"+dataSolution.getLocalSearch().toString()));
 
         br.write("solutionFeatures;f1Score;neighborhood;iterationNeighborhood;localSearch;iterationLocalSearch;runnigTime");
         br.newLine();

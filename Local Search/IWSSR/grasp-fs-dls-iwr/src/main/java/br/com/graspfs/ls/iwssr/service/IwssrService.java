@@ -44,7 +44,7 @@ public class IwssrService {
         var localSolutionReplace = updateSolution(dataSolution);
 
         // criar arquivo para métrica
-        BufferedWriter br = new BufferedWriter(new FileWriter("IWSSR_METRICS"));
+        BufferedWriter br = new BufferedWriter(new FileWriter("IWSSR_METRICS"+dataSolution.getLocalSearch().toString()));
 
         br.write("solutionFeatures;f1Score;neighborhood;iterationNeighborhood;localSearch;iterationLocalSearch;runnigTime");
         br.newLine();

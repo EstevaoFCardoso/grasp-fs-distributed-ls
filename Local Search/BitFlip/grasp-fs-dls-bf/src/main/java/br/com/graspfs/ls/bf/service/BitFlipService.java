@@ -31,7 +31,7 @@ public class BitFlipService {
         DataSolution bestSolution= updateSolution(solution);
 
         // criar arquivo para métrica
-        BufferedWriter br = new BufferedWriter(new FileWriter("BIT-FLIP_METRICS"));
+        BufferedWriter br = new BufferedWriter(new FileWriter("BIT-FLIP_METRICS"+solution.getLocalSearch().toString()));
 
         br.write("solutionFeatures;f1Score;neighborhood;iterationNeighborhood;localSearch;iterationLocalSearch;runnigTime");
         br.newLine();
