@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -15,11 +16,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class KafkaIwssrConsumer {
 
+    @Autowired
     IwssrService iwssrService;
 
     private final Logger logg = LoggerFactory.getLogger(KafkaIwssrConsumer.class);
 
-    @KafkaListener(topics = "IWSSR_TOPIC", groupId = "myGroup", containerFactory = "iwssrListenerContainerFactory")
+    @KafkaListener(topics = "IWSSR_TOPIC", groupId = "myGroup")
     public void consume(ConsumerRecord<String, DataSolution> record){
 
         logg.info("Received Message " + record.value());
