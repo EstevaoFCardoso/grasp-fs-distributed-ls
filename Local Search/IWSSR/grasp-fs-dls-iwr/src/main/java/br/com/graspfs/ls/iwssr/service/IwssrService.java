@@ -44,41 +44,22 @@ public class IwssrService {
         var localSolutionAdd = updateSolution(dataSolution);
         var localSolutionReplace = updateSolution(dataSolution);
 
-        // criar arquivo para métrica
-        BufferedWriter br = new BufferedWriter(new FileWriter("IWSSR_METRICS"+dataSolution.getLocalSearch().toString()));
-
-        br.write("solutionFeatures;f1Score;neighborhood;iterationNeighborhood;localSearch;iterationLocalSearch;runnigTime");
-        br.newLine();
-
         for(int i = 1; i < localSolutionAdd.getRclfeatures().size(); i++){
-            final var time = System.currentTimeMillis();
 
             localSolutionAdd = updateSolution(addMovement(localSolutionAdd));
             localSolutionReplace = updateSolution(replaceMovement(localSolutionAdd));
             localSolutionReplace = replaceMovement(localSolutionReplace);
-            localSolutionReplace.setRunnigTime(time);
-
-            br.write(localSolutionReplace.getSolutionFeatures()+";"
-                    +localSolutionReplace.getF1Score()+";"
-                    +localSolutionReplace.getNeighborhood()+";"
-                    +localSolutionReplace.getIterationNeighborhood()+";"
-                    +localSolutionReplace.getLocalSearch()+";"
-                    +localSolutionReplace.getIterationLocalSearch()+";"
-                    +localSolutionReplace.getRunnigTime()
-            );
-            br.newLine();
 
             if(localSolutionReplace.getF1Score() > bestSolution.getF1Score()){
                 bestSolution = updateSolution(localSolutionReplace);
             }
         }
-
         System.out.println("#######################################");
         System.out.println("#######################################");
         logg.info("BESTSOLUTION FINAL:" + bestSolution.getF1Score());
         System.out.println("#######################################");
         System.out.println("#######################################");
-        br.close();
+
         return bestSolution;
     }
 
@@ -95,8 +76,14 @@ public class IwssrService {
         System.out.println("#######################################");
         logg.info("INITIAL SOLUTION :" + solution.getF1Score()+ " solution: " + solution.getSolutionFeatures());
 
-        for(int i = 0; i<solution.getSolutionFeatures().size();i++){
+        // criar arquivo para métrica
+        BufferedWriter br = new BufferedWriter(new FileWriter("IWSSR_METRICS"+solution.getIterationLocalSearch().toString()));
 
+        br.write("solutionFeatures;f1Score;neighborhood;iterationNeighborhood;localSearch;iterationLocalSearch;runnigTime");
+        br.newLine();
+
+        for(int i = 0; i<solution.getSolutionFeatures().size();i++){
+            final var time = System.currentTimeMillis();
             System.out.println("solutionADD " + solution.getSolutionFeatures());
 
             var replacedSolution = updateSolution(solution);
@@ -115,6 +102,17 @@ public class IwssrService {
             logg.info("NEW SOLUTION :" + replacedSolution.getF1Score()+ " solution: " + replacedSolution.getSolutionFeatures());
             System.out.println("#######################################");
 
+            replacedSolution.setRunnigTime(time);
+            br.write(replacedSolution.getSolutionFeatures()+";"
+                    +replacedSolution.getF1Score()+";"
+                    +replacedSolution.getNeighborhood()+";"
+                    +replacedSolution.getIterationNeighborhood()+";"
+                    +replacedSolution.getLocalSearch()+";"
+                    +replacedSolution.getIterationLocalSearch()+";"
+                    +replacedSolution.getRunnigTime()
+            );
+            br.newLine();
+
             if(replacedSolution.getF1Score() > bestReplace.getF1Score()){
                 System.out.println("#######################################");
                 bestReplace = updateSolution(replacedSolution);
@@ -122,6 +120,7 @@ public class IwssrService {
                 System.out.println("#######################################");
             }
         }
+        br.close();
         return bestReplace;
     }
 
