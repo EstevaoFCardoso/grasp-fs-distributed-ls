@@ -22,12 +22,14 @@ public class BitFlipService {
     @Autowired
     KafkaSolutionsProducer kafkaSolutionsProducer;
 
-    public DataSolution flipFeatures(DataSolution solution, Long time) throws Exception {
+    public DataSolution flipFeatures(DataSolution solution) throws Exception {
+
         var random = new Random();
         var valueIndex = 0;
         int i = 1;
         var positionReplace = 0;
         DataSolution bestSolution= updateSolution(solution);
+
         // criar arquivo para métrica
         BufferedWriter br = new BufferedWriter(new FileWriter("BIT-FLIP_METRICS"));
 
@@ -37,6 +39,7 @@ public class BitFlipService {
         try{
             PrintSolution.logSolution(solution);
             do{
+                final var time = System.currentTimeMillis();
                 float valueOfFeatures;
                 valueIndex = random.nextInt(solution.getRclfeatures().size()-1);
                 positionReplace = random.nextInt(solution.getSolutionFeatures().size()-1);
@@ -54,7 +57,7 @@ public class BitFlipService {
                     valueOfFeatures = MachineLearning.evaluateSolution(solution.getSolutionFeatures());//sumArray(solution.getSolutionFeatures());
 
                     solution.setF1Score(Float.valueOf(valueOfFeatures));
-                    solution.setRunnigTime(System.currentTimeMillis()-time);
+                    solution.setRunnigTime(time);
 
 
                     br.write(solution.getSolutionFeatures()+";"
@@ -89,12 +92,11 @@ public class BitFlipService {
         }
     }
 
-    public void doBipFlip(DataSolution data, Long time) throws Exception {
+    public void doBipFlip(DataSolution data) throws Exception {
         DataSolution bestSolution;
         data.setLocalSearch(LocalSearchUtils.BF);
-        bestSolution = flipFeatures(data,time);
+        bestSolution = flipFeatures(data);
         bestSolution.setIterationLocalSearch(data.getIterationLocalSearch()+1);
-        bestSolution.setRunnigTime(time);
         bestSolution.setNeighborhood(data.getNeighborhood());
         bestSolution.getRclfeatures().addAll(data.getRclfeatures());
         bestSolution.setSeedId(data.getSeedId());

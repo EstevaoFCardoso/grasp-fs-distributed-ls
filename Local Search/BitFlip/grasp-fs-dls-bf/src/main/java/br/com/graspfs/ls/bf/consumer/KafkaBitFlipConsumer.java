@@ -21,9 +21,8 @@ public class KafkaBitFlipConsumer {
     @KafkaListener(topics = {"BIT_FLIP_TOPIC"}, groupId = "myGroup")
     public void consume(DataSolution record){
         logg.info("Received Message " + record);
-        final var timeConsume = System.currentTimeMillis();
         try{
-            bitFlipService.doBipFlip(record, timeConsume);
+            bitFlipService.doBipFlip(record);
         }catch(IllegalArgumentException ex){
             throw ex;
         } catch (Exception e) {
