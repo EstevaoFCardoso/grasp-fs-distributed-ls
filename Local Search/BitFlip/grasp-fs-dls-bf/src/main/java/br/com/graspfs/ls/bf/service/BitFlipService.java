@@ -4,12 +4,14 @@ import br.com.graspfs.ls.bf.dto.DataSolution;
 import br.com.graspfs.ls.bf.machinelearning.MachineLearning;
 import br.com.graspfs.ls.bf.producer.KafkaSolutionsProducer;
 import br.com.graspfs.ls.bf.util.LocalSearchUtils;
+import br.com.graspfs.ls.bf.util.PrintSolution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.Random;
 
 @Component
@@ -26,23 +28,41 @@ public class BitFlipService {
         int i = 1;
         var positionReplace = 0;
         DataSolution bestSolution= updateSolution(solution);
+        // criar arquivo para métrica
+        BufferedWriter br = new BufferedWriter(new FileWriter("BIT-FLIP_METRICS"));
+
+        br.write("solutionFeatures;f1Score;neighborhood;iterationNeighborhood;localSearch;iterationLocalSearch;runnigTime");
+        br.newLine();
+
         try{
+            PrintSolution.logSolution(solution);
             do{
                 float valueOfFeatures;
                 valueIndex = random.nextInt(solution.getRclfeatures().size()-1);
                 positionReplace = random.nextInt(solution.getSolutionFeatures().size()-1);
 
                 if(valueIndex>=0 && valueIndex<solution.getRclfeatures().size() && (positionReplace >= 0 &&  positionReplace<solution.getSolutionFeatures().size())){
+
                     //bit flip
                     solution.getSolutionFeatures().add(solution.getRclfeatures().remove(valueIndex));
                     solution.getRclfeatures().add(solution.getSolutionFeatures().remove(positionReplace));
                     solution.setIterationLocalSearch(solution.getIterationLocalSearch()+1);
+
                     logg.info("Score: "+ solution.getF1Score() + " Solução: " + " " + solution.getSolutionFeatures() + " Iteração:"+ solution.getIterationLocalSearch());
+
                     //soma metrica
                     valueOfFeatures = MachineLearning.evaluateSolution(solution.getSolutionFeatures());//sumArray(solution.getSolutionFeatures());
+
                     solution.setF1Score(Float.valueOf(valueOfFeatures));
                     solution.setRunnigTime(System.currentTimeMillis()-time);
+
+
+                    br.write(solution.getSolutionFeatures()+";"+solution.getF1Score()+";"+solution.getNeighborhood()+";"+solution.getIterationNeighborhood()+";"+solution.getLocalSearch()+";"+solution.getIterationLocalSearch()+";");
+                    br.newLine();
                     //verifica bestSolution
+
+                    PrintSolution.logSolution(solution);
+
                     if(bestSolution.getF1Score() < solution.getF1Score()){
                         bestSolution=updateSolution(solution);
                     }
@@ -52,6 +72,8 @@ public class BitFlipService {
 
             logg.info("BESTTSOLUTION: "+ bestSolution.getF1Score() + " " + bestSolution.getRunnigTime() + " " + bestSolution.getNeighborhood() + " " + bestSolution.getSolutionFeatures() + " "
                     + bestSolution.getIterationLocalSearch());
+
+            br.close();
             return bestSolution;
 
         }catch (RuntimeException ex){
