@@ -26,7 +26,7 @@ public class BitFlipService {
 
         var random = new Random();
         var valueIndex = 0;
-        int i = 1;
+        int i = 0;
         var positionReplace = 0;
         DataSolution bestSolution= updateSolution(solution);
 
