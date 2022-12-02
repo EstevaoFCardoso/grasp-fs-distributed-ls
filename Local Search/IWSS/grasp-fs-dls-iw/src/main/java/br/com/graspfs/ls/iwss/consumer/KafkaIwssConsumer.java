@@ -24,9 +24,9 @@ public class KafkaIwssConsumer {
     public void consume(DataSolution record){
 
         logg.info("Received Message in IWSS" + record);
-        final var time = System.currentTimeMillis();
+
         try{
-            iwssService.doIwss(record,time);
+            iwssService.doIwss(record);
         }catch(IllegalArgumentException ex){
             throw ex;
         } catch (Exception e) {
