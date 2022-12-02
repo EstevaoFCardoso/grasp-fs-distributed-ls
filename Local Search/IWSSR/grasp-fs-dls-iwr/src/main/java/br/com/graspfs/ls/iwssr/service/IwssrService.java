@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.ArrayList;
 
 @Service
@@ -19,11 +21,11 @@ public class IwssrService {
 
     private static final Logger logg = LoggerFactory.getLogger(IwssrService.class);
 
-    public void doIwssr(DataSolution data, Long time) throws Exception {
+    public void doIwssr(DataSolution data) throws Exception {
 
         DataSolution bestSolution;
-        bestSolution = incrementalWrapperSequencialSearch(data,time);
-        bestSolution.setLocalSearch(LocalSearchUtils.IWR);
+        data.setLocalSearch(LocalSearchUtils.IWR);
+        bestSolution = incrementalWrapperSequencialSearch(data);
         bestSolution.setIterationLocalSearch(data.getIterationLocalSearch()+1);
         bestSolution.setNeighborhood(data.getNeighborhood());
         bestSolution.getRclfeatures().addAll(data.getRclfeatures());
@@ -33,26 +35,48 @@ public class IwssrService {
 
     }
 
-    public static DataSolution incrementalWrapperSequencialSearch(DataSolution dataSolution, Long time) throws Exception {
+    public static DataSolution incrementalWrapperSequencialSearch(DataSolution dataSolution) throws Exception {
 
         DataSolution bestSolution = updateSolution(dataSolution);
 
         var localSolutionAdd = updateSolution(dataSolution);
         var localSolutionReplace = updateSolution(dataSolution);
 
+        // criar arquivo para métrica
+        BufferedWriter br = new BufferedWriter(new FileWriter("IWSSR_METRICS"));
+
+        br.write("solutionFeatures;f1Score;neighborhood;iterationNeighborhood;localSearch;iterationLocalSearch;runnigTime");
+        br.newLine();
+
         for(int i = 1; i < localSolutionAdd.getRclfeatures().size(); i++){
+            final var time = System.currentTimeMillis();
+
             localSolutionAdd = updateSolution(addMovement(localSolutionAdd));
             localSolutionReplace = updateSolution(replaceMovement(localSolutionAdd));
             localSolutionReplace = replaceMovement(localSolutionReplace);
+            localSolutionReplace.setRunnigTime(time);
+
+            br.write(localSolutionReplace.getSolutionFeatures()+";"
+                    +localSolutionReplace.getF1Score()+";"
+                    +localSolutionReplace.getNeighborhood()+";"
+                    +localSolutionReplace.getIterationNeighborhood()+";"
+                    +localSolutionReplace.getLocalSearch()+";"
+                    +localSolutionReplace.getIterationLocalSearch()+";"
+                    +localSolutionReplace.getRunnigTime()
+            );
+            br.newLine();
+
             if(localSolutionReplace.getF1Score() > bestSolution.getF1Score()){
                 bestSolution = updateSolution(localSolutionReplace);
             }
         }
+
         System.out.println("#######################################");
         System.out.println("#######################################");
         logg.info("BESTSOLUTION FINAL:" + bestSolution.getF1Score());
         System.out.println("#######################################");
         System.out.println("#######################################");
+        br.close();
         return bestSolution;
     }
 

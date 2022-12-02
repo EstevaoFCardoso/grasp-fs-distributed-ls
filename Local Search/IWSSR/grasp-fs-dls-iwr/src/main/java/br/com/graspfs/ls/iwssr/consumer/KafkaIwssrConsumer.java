@@ -23,14 +23,13 @@ public class KafkaIwssrConsumer {
     public void consume(ConsumerRecord<String, DataSolution> record){
 
         logg.info("Received Message " + record.value());
-        final var time = System.currentTimeMillis();
+
         try{
-            iwssrService.doIwssr(record.value(), time);
+            iwssrService.doIwssr(record.value());
         }catch(IllegalArgumentException ex){
             throw ex;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
 }
