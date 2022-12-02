@@ -25,6 +25,7 @@ public class IwssService {
         bestSolution.setIterationLocalSearch(data.getIterationLocalSearch()+1);
         bestSolution.setNeighborhood(data.getNeighborhood());
         bestSolution.getRclfeatures().addAll(data.getRclfeatures());
+        bestSolution.setIterationNeighborhood(data.getIterationNeighborhood());
         bestSolution.setSeedId(data.getSeedId());
 
         kafkaSolutionsProducer.send(bestSolution);
