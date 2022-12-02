@@ -28,7 +28,7 @@ public class KafkaSolutionConsumer {
     public void consume(ConsumerRecord<String, DataSolution> record){
         logg.info("Received Message " + record.value());
         final var time = System.currentTimeMillis();
-        if(record.value().getIterationNeighborhood()<100){
+        if(record.value().getIterationNeighborhood()<10){
             try{
                 logg.info("VEIO PELO SOLUTION");
                 if(bestSolution == null){

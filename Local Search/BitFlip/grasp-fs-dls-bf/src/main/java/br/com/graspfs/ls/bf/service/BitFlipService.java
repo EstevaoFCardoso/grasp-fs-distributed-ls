@@ -101,7 +101,7 @@ public class BitFlipService {
         bestSolution.getRclfeatures().addAll(data.getRclfeatures());
         bestSolution.setIterationNeighborhood(data.getIterationNeighborhood());
         bestSolution.setSeedId(data.getSeedId());
-
+        bestSolution.setLocalSearch(LocalSearchUtils.BF);
         logg.info("BESTSOLUTION: "+ bestSolution.getF1Score() + " " + bestSolution.getRunnigTime() + " " + bestSolution.getNeighborhood() + " " + bestSolution.getSolutionFeatures() + " "
                 + bestSolution.getIterationLocalSearch());
 
