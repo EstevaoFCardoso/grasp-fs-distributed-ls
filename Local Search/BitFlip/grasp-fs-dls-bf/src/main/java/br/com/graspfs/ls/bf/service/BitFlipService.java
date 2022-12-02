@@ -57,7 +57,14 @@ public class BitFlipService {
                     solution.setRunnigTime(System.currentTimeMillis()-time);
 
 
-                    br.write(solution.getSolutionFeatures()+";"+solution.getF1Score()+";"+solution.getNeighborhood()+";"+solution.getIterationNeighborhood()+";"+solution.getLocalSearch()+";"+solution.getIterationLocalSearch()+";");
+                    br.write(solution.getSolutionFeatures()+";"
+                            +solution.getF1Score()+";"
+                            +solution.getNeighborhood()+";"
+                            +solution.getIterationNeighborhood()+";"
+                            +solution.getLocalSearch()+";"
+                            +solution.getIterationLocalSearch()+";"
+                            +solution.getRunnigTime()
+                    );
                     br.newLine();
                     //verifica bestSolution
 
