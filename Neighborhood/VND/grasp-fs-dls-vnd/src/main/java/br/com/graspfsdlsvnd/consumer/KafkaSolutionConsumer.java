@@ -30,6 +30,7 @@ public class KafkaSolutionConsumer {
         final var time = System.currentTimeMillis();
         if(record.value().getIterationNeighborhood()<100){
             try{
+                logg.info("VEIO PELO SOLUTION");
                 if(bestSolution == null){
                     bestSolution = record.value();
                     vndService.callNextService(bestSolution,record);
