@@ -91,8 +91,8 @@ public class BitFlipService {
 
     public void doBipFlip(DataSolution data, Long time) throws Exception {
         DataSolution bestSolution;
+        data.setLocalSearch(LocalSearchUtils.BF);
         bestSolution = flipFeatures(data,time);
-        bestSolution.setLocalSearch(LocalSearchUtils.BF);
         bestSolution.setIterationLocalSearch(data.getIterationLocalSearch()+1);
         bestSolution.setRunnigTime(time);
         bestSolution.setNeighborhood(data.getNeighborhood());
