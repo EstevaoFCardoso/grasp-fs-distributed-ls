@@ -16,40 +16,29 @@ public class GraspFsDlsVndApplication {
     public static void main(String[] args) {
 		SpringApplication.run(GraspFsDlsVndApplication.class, args);
     }
-    @Bean
-    CommandLineRunner commandLineRunner(KafkaInitialSolutionProducer kafkaInitialSolutionProducer){
-        System.out.println("PRODUZINDO MENSAGEM PARA TOPICO INICIAL");
-        var data = DataSolution.builder()
-                .seedId(1L)
-                .rclfeatures(new ArrayList<>(List.of(6,
-                        7,
-                        8,
-                        9,
-                        10,
-                        11,
-                        12,
-                        13,
-                        14,
-                        15,
-                        16,
-                        17,
-                        18,
-                        19,
-                        20)))
-                .solutionFeatures(new ArrayList<>(List.of(new Integer[]{6,
-                        1,
-                        2,
-                        3,
-                        4,
-                        5})))
-                .neighborhood("VND")
-                .f1Score(0.78F)
-                .runnigTime(84L)
-                .iterationLocalSearch(0)
-                .build();
-        System.out.println("MENSSAGEM " + data);
-        return args -> {
-            kafkaInitialSolutionProducer.send(data);
-        };
-    }
+//    @Bean
+//    CommandLineRunner commandLineRunner(KafkaInitialSolutionProducer kafkaInitialSolutionProducer){
+//        System.out.println("PRODUZINDO MENSAGEM PARA TOPICO INICIAL");
+//        ArrayList<Integer> rclFeatures = new ArrayList<>();
+//        ArrayList<Integer> solutionFeatures = new ArrayList<>();
+//        for(int i = 1; i<=69; i++) {
+//           rclFeatures.add(i);
+//        }
+//        for(int i = 0; i < 5; i++){
+//            solutionFeatures.add(rclFeatures.remove(i));
+//        }
+//        var data = DataSolution.builder()
+//                .seedId(1L)
+//                .rclfeatures(rclFeatures)
+//                .solutionFeatures(solutionFeatures)
+//                .neighborhood("VND")
+//                .f1Score(0.78F)
+//                .runnigTime(84L)
+//                .iterationLocalSearch(0)
+//                .build();
+//        System.out.println("MENSSAGEM " + data);
+//        return args -> {
+//            kafkaInitialSolutionProducer.send(data);
+//        };
+//    }
 }

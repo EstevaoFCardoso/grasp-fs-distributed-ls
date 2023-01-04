@@ -2,6 +2,7 @@ package br.com.graspfs.ls.bf.machinelearning;
 
 import br.com.graspfs.ls.bf.util.MachineLearningUtils;
 import weka.classifiers.AbstractClassifier;
+import weka.classifiers.lazy.IBk;
 import weka.classifiers.trees.J48;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -18,7 +19,7 @@ public class MachineLearning {
         Instances datasetTestes = MachineLearningUtils.lerDataset("ereno1ktest.arff");
         datasetTreinamento = MachineLearningUtils.selecionaFeatures(datasetTreinamento, features);
         datasetTestes = MachineLearningUtils.selecionaFeatures(datasetTestes, features);
-        AbstractClassifier classificador = new J48(); // nova instância de um classificador qualquer
+        AbstractClassifier classificador = new IBk(); // nova instância de um classificador qualquer
         AbstractClassifier classificadorTreinado = MachineLearningUtils.construir(datasetTreinamento, classificador);
 
         // Resultados

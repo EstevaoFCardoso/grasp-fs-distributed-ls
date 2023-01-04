@@ -12,13 +12,15 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.Random;
 
 @Component
 public class BitFlipService {
 
     private final Logger logg = LoggerFactory.getLogger(BitFlipService.class);
-
+    private static BufferedWriter br;
+    private boolean firstTime = true;
     @Autowired
     KafkaSolutionsProducer kafkaSolutionsProducer;
 
@@ -29,12 +31,6 @@ public class BitFlipService {
         int i = 0;
         var positionReplace = 0;
         DataSolution bestSolution= updateSolution(solution);
-
-        // criar arquivo para métrica
-        BufferedWriter br = new BufferedWriter(new FileWriter("BIT-FLIP_METRICS"+solution.getIterationLocalSearch().toString()));
-
-        br.write("solutionFeatures;f1Score;neighborhood;iterationNeighborhood;localSearch;iterationLocalSearch;runnigTime");
-        br.newLine();
 
         try{
             PrintSolution.logSolution(solution);
@@ -59,7 +55,6 @@ public class BitFlipService {
                     solution.setF1Score(Float.valueOf(valueOfFeatures));
                     solution.setRunnigTime(time);
 
-
                     br.write(solution.getSolutionFeatures()+";"
                             +solution.getF1Score()+";"
                             +solution.getNeighborhood()+";"
@@ -69,6 +64,7 @@ public class BitFlipService {
                             +solution.getRunnigTime()
                     );
                     br.newLine();
+
                     //verifica bestSolution
 
                     PrintSolution.logSolution(solution);
@@ -82,8 +78,6 @@ public class BitFlipService {
 
             logg.info("BESTTSOLUTION: "+ bestSolution.getF1Score() + " " + bestSolution.getRunnigTime() + " " + bestSolution.getNeighborhood() + " " + bestSolution.getSolutionFeatures() + " "
                     + bestSolution.getIterationLocalSearch());
-
-            br.close();
             return bestSolution;
 
         }catch (RuntimeException ex){
@@ -95,10 +89,16 @@ public class BitFlipService {
     public void doBipFlip(DataSolution data) throws Exception {
         DataSolution bestSolution;
         data.setLocalSearch(LocalSearchUtils.BF);
+        br = new BufferedWriter(new FileWriter("BIT-FLIP_METRICS",true));
+        if(firstTime) {
+            br.write("solutionFeatures;f1Score;neighborhood;iterationNeighborhood;localSearch;iterationLocalSearch;runnigTime");
+            br.newLine();
+            firstTime = false;
+        }
         bestSolution = flipFeatures(data);
+        br.close();
         bestSolution.setIterationLocalSearch(data.getIterationLocalSearch()+1);
         bestSolution.setNeighborhood(data.getNeighborhood());
-        bestSolution.getRclfeatures().addAll(data.getRclfeatures());
         bestSolution.setIterationNeighborhood(data.getIterationNeighborhood());
         bestSolution.setSeedId(data.getSeedId());
         bestSolution.setLocalSearch(LocalSearchUtils.BF);
@@ -111,8 +111,8 @@ public class BitFlipService {
     private static DataSolution updateSolution(DataSolution solution){
         return DataSolution.builder()
                 .seedId(solution.getSeedId())
-                .rclfeatures(solution.getRclfeatures())
-                .solutionFeatures(solution.getSolutionFeatures())
+                .rclfeatures(new ArrayList<>(solution.getRclfeatures()))
+                .solutionFeatures(new ArrayList<>(solution.getSolutionFeatures()))
                 .neighborhood(solution.getNeighborhood())
                 .f1Score(solution.getF1Score())
                 .runnigTime(solution.getRunnigTime())

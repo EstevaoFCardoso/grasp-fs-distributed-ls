@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.xml.crypto.Data;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -20,40 +21,67 @@ public class IwssrService {
     KafkaSolutionsProducer kafkaSolutionsProducer;
 
     private static final Logger logg = LoggerFactory.getLogger(IwssrService.class);
-
-    public void doIwssr(DataSolution data) throws Exception {
-
+    private static BufferedWriter br;
+    private boolean firstTime = true;
+    public void doIwssr(DataSolution seed) throws Exception {
         DataSolution bestSolution;
+        DataSolution data = updateSolution(seed);
         data.setLocalSearch(LocalSearchUtils.IWR);
+        data.setIterationLocalSearch(data.getIterationLocalSearch()+1);
+        data.setNeighborhood(data.getNeighborhood());
+        data.setIterationNeighborhood(data.getIterationNeighborhood());
+        data.setLocalSearch(LocalSearchUtils.IWR);
+        data.setSeedId(data.getSeedId());
+        br = new BufferedWriter(new FileWriter("IWSSR_METRICS", true));
+        if (firstTime) {
+            br.write("solutionFeatures;f1Score;neighborhood;iterationNeighborhood;localSearch;iterationLocalSearch;runnigTime");
+            br.newLine();
+            firstTime = false;
+        }
         bestSolution = incrementalWrapperSequencialSearch(data);
-        bestSolution.setIterationLocalSearch(data.getIterationLocalSearch()+1);
-        bestSolution.setNeighborhood(data.getNeighborhood());
-        bestSolution.getRclfeatures().addAll(data.getRclfeatures());
-        bestSolution.setIterationNeighborhood(data.getIterationNeighborhood());
-        bestSolution.setLocalSearch(LocalSearchUtils.IWR);
-        bestSolution.setSeedId(data.getSeedId());
-
+        br.close();
+        bestSolution = updateSolution(resetDataSolution(seed, bestSolution));
         kafkaSolutionsProducer.send(bestSolution);
 
     }
 
-    public static DataSolution incrementalWrapperSequencialSearch(DataSolution dataSolution) throws Exception {
+    public DataSolution resetDataSolution(DataSolution seed, DataSolution data){
+        int k = seed.getRclfeatures().size()+seed.getSolutionFeatures().size();
+        data.setRclfeatures(new ArrayList<>());
+        for (int i = 1; i <= k; i++){
+            if (!checkFeatureinSolution(data, i)){
+                data.getRclfeatures().add(i);
+            }
+        }
+        return data;
+    }
 
+    public boolean checkFeatureinSolution(DataSolution data, int feature){
+        for (int featureInSolution : data.getSolutionFeatures()){
+            if (featureInSolution==feature) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static DataSolution incrementalWrapperSequencialSearch(DataSolution dataSolution) throws Exception {
+        dataSolution.setIterationLocalSearch(dataSolution.getIterationLocalSearch()+1);
         DataSolution bestSolution = updateSolution(dataSolution);
 
         var localSolutionAdd = updateSolution(dataSolution);
         var localSolutionReplace = updateSolution(dataSolution);
-
-        for(int i = 1; i < localSolutionAdd.getRclfeatures().size(); i++){
-
+        int n = localSolutionAdd.getRclfeatures().size();
+        for(int i = 0; i < n; i++){
+            localSolutionAdd.setIterationLocalSearch(i);
             localSolutionAdd = updateSolution(addMovement(localSolutionAdd));
             localSolutionReplace = updateSolution(replaceMovement(localSolutionAdd));
             localSolutionReplace = replaceMovement(localSolutionReplace);
-
             if(localSolutionReplace.getF1Score() > bestSolution.getF1Score()){
                 bestSolution = updateSolution(localSolutionReplace);
             }
         }
+
         System.out.println("#######################################");
         System.out.println("#######################################");
         logg.info("BESTSOLUTION FINAL:" + bestSolution.getF1Score());
@@ -67,6 +95,16 @@ public class IwssrService {
         solution.getSolutionFeatures().add(solution.getRclfeatures().remove(0));
         float f1Score = MachineLearning.evaluateSolution(solution.getSolutionFeatures());
         solution.setF1Score(f1Score);
+        solution.setRunnigTime(System.currentTimeMillis());
+        br.write(solution.getSolutionFeatures()+";"
+                +solution.getF1Score()+";"
+                +solution.getNeighborhood()+";"
+                +solution.getIterationNeighborhood()+";"
+                +solution.getLocalSearch()+";"
+                +solution.getIterationLocalSearch()+";"
+                +solution.getRunnigTime()
+        );
+        br.newLine();
         return solution;
     }
 
@@ -76,11 +114,6 @@ public class IwssrService {
         System.out.println("#######################################");
         logg.info("INITIAL SOLUTION :" + solution.getF1Score()+ " solution: " + solution.getSolutionFeatures());
 
-        // criar arquivo para métrica
-        BufferedWriter br = new BufferedWriter(new FileWriter("IWSSR_METRICS"+solution.getIterationLocalSearch().toString()));
-
-        br.write("solutionFeatures;f1Score;neighborhood;iterationNeighborhood;localSearch;iterationLocalSearch;runnigTime");
-        br.newLine();
 
         for(int i = 0; i<solution.getSolutionFeatures().size();i++){
             final var time = System.currentTimeMillis();
@@ -101,8 +134,7 @@ public class IwssrService {
             System.out.println("#######################################");
             logg.info("NEW SOLUTION :" + replacedSolution.getF1Score()+ " solution: " + replacedSolution.getSolutionFeatures());
             System.out.println("#######################################");
-
-            replacedSolution.setRunnigTime(time);
+            replacedSolution.setRunnigTime(System.currentTimeMillis());
             br.write(replacedSolution.getSolutionFeatures()+";"
                     +replacedSolution.getF1Score()+";"
                     +replacedSolution.getNeighborhood()+";"
@@ -120,7 +152,7 @@ public class IwssrService {
                 System.out.println("#######################################");
             }
         }
-        br.close();
+
         return bestReplace;
     }
 
@@ -129,10 +161,13 @@ public class IwssrService {
                 .seedId(solution.getSeedId())
                 .rclfeatures(new ArrayList<>(solution.getRclfeatures()))
                 .solutionFeatures(new ArrayList<>(solution.getSolutionFeatures()))
+                .iterationNeighborhood(solution.getIterationNeighborhood())
+                .classfier(solution.getClassfier())
                 .neighborhood(solution.getNeighborhood())
                 .f1Score(solution.getF1Score())
                 .runnigTime(solution.getRunnigTime())
                 .iterationLocalSearch(solution.getIterationLocalSearch())
+                .localSearch(solution.getLocalSearch())
                 .build();
     }
 

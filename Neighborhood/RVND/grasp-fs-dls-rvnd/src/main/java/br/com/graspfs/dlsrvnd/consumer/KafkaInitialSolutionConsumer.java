@@ -27,7 +27,7 @@ public class KafkaInitialSolutionConsumer {
 
         logg.info("Received Message " + record.value());
         final var time = System.currentTimeMillis();
-        for(int i =0;i<100;i++){
+        for(int i =0;i<10;i++){
             try{
                 rvndService.doRvnd(record.value());
             }catch(Exception ex){

@@ -36,19 +36,19 @@ public class RvndService {
 
         iteration++;
         var random = new Random();
-        switch (random.nextInt(3)){
-            case 1:
-                logg.info("SEND BITF");
-                bitFlipProducer.send(data);
-                break;
-            case 2:
-                logg.info("SEND IWSS");
-                kafkaIwssProducer.send(data);
-                break;
-            case 3:
-                logg.info("SEND IWSSR");
-                kafkaIwssrProducer.send(data);
-                break;
+        switch (random.nextInt(3)+1){
+                case 1:
+                    logg.info("SEND BITF");
+                    bitFlipProducer.send(data);
+                    break;
+                case 2:
+                    logg.info("SEND IWSS");
+                    kafkaIwssProducer.send(data);
+                    break;
+                case 3:
+                    logg.info("SEND IWSSR");
+                    kafkaIwssrProducer.send(data);
+                    break;
+            }
         }
     }
-}

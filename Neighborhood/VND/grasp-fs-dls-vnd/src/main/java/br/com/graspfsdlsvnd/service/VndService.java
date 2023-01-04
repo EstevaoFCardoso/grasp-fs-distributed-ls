@@ -52,7 +52,7 @@ public class VndService {
 
     public DataSolution callNextService(DataSolution bestSolution, ConsumerRecord<String, DataSolution> record ) {
         logg.info("CALLNEXTSERVICE");
-        if (record.value().getF1Score() >= bestSolution.getF1Score()) {
+        if (record.value().getF1Score() > bestSolution.getF1Score()) {
             logg.info("RESET");
             kafkaInitialSolutionProducer.send(record.value());
             return record.value();

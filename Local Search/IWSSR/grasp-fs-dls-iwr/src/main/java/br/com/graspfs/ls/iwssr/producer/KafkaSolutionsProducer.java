@@ -16,7 +16,7 @@ public class KafkaSolutionsProducer {
     private final KafkaTemplate<String, DataSolution> kafkaTemplate;
 
     public KafkaSolutionsProducer(KafkaTemplate<String, DataSolution> kafkaTemplate){
-        this.topic = "SOLUTIONS_TOPIC";
+        this.topic = "SOLUTION_TOPIC";
         this.kafkaTemplate = kafkaTemplate;
     }
 

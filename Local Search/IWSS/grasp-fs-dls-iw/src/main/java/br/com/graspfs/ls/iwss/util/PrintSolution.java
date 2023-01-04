@@ -11,6 +11,8 @@ public class PrintSolution {
         System.out.println("          Solution Features:          " +dataSolution.getSolutionFeatures());
         System.out.println("          RCL Features:               " +dataSolution.getRclfeatures());
         System.out.println("          F1 Score :                   " +dataSolution.getF1Score());
+        System.out.println("          Interation Local :                   " +dataSolution.getIterationLocalSearch());
+        System.out.println("          Interation Neighborhood :                   " +dataSolution.getIterationNeighborhood());
         System.out.println("###############################################");
 
     }
